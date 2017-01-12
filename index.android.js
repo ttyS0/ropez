@@ -13,7 +13,9 @@ import {
   Switch
 } from 'react-native';
 
+
 import BluetoothSerial from 'react-native-bluetooth-serial';
+import { TriangleColorPicker, toHsv, fromHsv } from 'react-native-color-picker'
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
 const iconv = require('iconv-lite');
@@ -31,6 +33,8 @@ class RopeZ extends Component {
       available: true,
       devices: [],
       device: null,
+      text: '',
+      music: '',
       connected: false,
     };
   }
@@ -38,7 +42,37 @@ class RopeZ extends Component {
   componentDidMount() {
     this.disconnect();
   }
+  sendMessage(msg) {
+    if(!this.state.connected) {
+      ToastAndroid.show('您还没有连接到 RopeZ 设备。', ToastAndroid.LONG);
+    } else {
+      BluetoothSerial.write(msg)
+      .catch((err) => ToastAndroid.show(err, ToastAndroid.LONG))
+    }
+  }
+  apply() {
+    this.sendMessage('@SET TEXT ' + this.state.text + '\r\n');
+    this.sendMessage('@SET MUSIC ' + this.state.music + '\r\n');
+  }
+  writePackets(message, packetSize = 64) {
+    const toWrite = iconv.encode(message, 'cp852');
+    const writePromises = [];
+    const packetCount = Math.ceil(toWrite.length / packetSize);
 
+    for (var i = 0; i < packetCount; i++) {
+      const packet = new Buffer(packetSize);
+      packet.fill(' ');
+      toWrite.copy(packet, 0, i * packetSize, (i + 1) * packetSize);
+      writePromises.push(BluetoothSerial.write(packet));
+    }
+  }
+  /*
+  sendMessage(msg) {
+    if(!this.state.connected) {
+
+    }
+  }
+  */
   connect() {
     this.setState({
       available: false
@@ -50,7 +84,7 @@ class RopeZ extends Component {
 		      setInterval((res) => {
               BluetoothSerial.isEnabled()
               .then((v) => {
-                return v ? resolve() : null;
+                return v ? resolve(clearInterval()) : null;
               })
 		      }, 100);
 	      });
@@ -128,15 +162,34 @@ class RopeZ extends Component {
           <Text style={{flex: 3, textAlign: 'center'}}>音乐</Text>
           <Picker
             style={{flex: 7}}
-            selectedValue={this.state.language}
-            onValueChange={(lang) => this.setState({language: lang})}>
-            <Picker.Item label="千本樱" value="java" />
-            <Picker.Item label="致爱丽丝" value="js" />
+            selectedValue={this.state.music}
+            onValueChange={(music) => this.setState({music})}>
+            <Picker.Item label="千本樱" value={500} />
+            <Picker.Item label="致爱丽丝" value={600} />
           </Picker>
         </View>
         <View style={styles.showString}>
           <Text style={{flex: 3, textAlign: 'center'}}>统计</Text>
           <Text style={{flex: 7, fontWeight: 'bold', textAlign: 'center'}}>今天你跳了<Text style={{color: '#F00'}}>30</Text>下</Text>
+        </View>
+        <View style={{flex: 1, padding: 15}}>
+          <Text style={{color: 'white'}}>React Native Color Picker - Controlled</Text>
+          <TriangleColorPicker
+            oldColor='purple'
+            color={this.state.color}
+            onColorSelected={color => alert(`Color selected: ${color}`)}
+            onOldColorSelected={color => alert(`Old color selected: ${color}`)}
+            style={{flex: 1}}
+          />
+        </View>
+        <View>
+          <TouchableOpacity
+            style={[styles.applyButton, { backgroundColor: '#283593' }]}
+            onPress={this.apply.bind(this)}
+            disabled={!this.state.available && this.state.connected}
+            >
+            <Text style={{ color: '#fff', textAlign: 'center'}}>应用</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -157,6 +210,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginVertical: 10,
     alignSelf: 'center',
+  },
+  applyButton: {
+    margin: 10,
+    padding: 5,
   },
   toolbar: {
     height: 50,
