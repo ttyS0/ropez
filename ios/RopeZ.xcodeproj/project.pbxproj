@@ -26,6 +26,7 @@
 		607F8728CF954DEBBBAAAD61 /* libBleManager.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CCC43E6FFBFC4727AE0F5237 /* libBleManager.a */; };
 		FDBD1EB582F345C1A7EB5E75 /* libBleClient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 81BC1DC3F07C488DB391E076 /* libBleClient.a */; };
 		191037A3BD6344D2A18E0E56 /* libRCTBluetoothSerial.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 257556C971454C56A85CB2B6 /* libRCTBluetoothSerial.a */; };
+		F4FD262A04C845BC8D420441 /* libRNBLE.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A2DA2711FC54E2188200AE8 /* libRNBLE.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -242,6 +243,8 @@
 		81BC1DC3F07C488DB391E076 /* libBleClient.a */ = {isa = PBXFileReference; name = "libBleClient.a"; path = "libBleClient.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 		71AB15A621B845338CFA79C2 /* RCTBluetoothSerial.xcodeproj */ = {isa = PBXFileReference; name = "RCTBluetoothSerial.xcodeproj"; path = "../node_modules/react-native-bluetooth-serial/ios/RCTBluetoothSerial.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		257556C971454C56A85CB2B6 /* libRCTBluetoothSerial.a */ = {isa = PBXFileReference; name = "libRCTBluetoothSerial.a"; path = "libRCTBluetoothSerial.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		0A520D38090E4D20B8AD60EF /* RNBLE.xcodeproj */ = {isa = PBXFileReference; name = "RNBLE.xcodeproj"; path = "../node_modules/react-native-ble/RNBLE.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		6A2DA2711FC54E2188200AE8 /* libRNBLE.a */ = {isa = PBXFileReference; name = "libRNBLE.a"; path = "libRNBLE.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -271,6 +274,7 @@
 				607F8728CF954DEBBBAAAD61 /* libBleManager.a in Frameworks */,
 				FDBD1EB582F345C1A7EB5E75 /* libBleClient.a in Frameworks */,
 				191037A3BD6344D2A18E0E56 /* libRCTBluetoothSerial.a in Frameworks */,
+				F4FD262A04C845BC8D420441 /* libRNBLE.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -418,6 +422,7 @@
 				27DC6EE4291144AFAAD512B5 /* BleManager.xcodeproj */,
 				E1822AD033394045A12C68A3 /* BleClient.xcodeproj */,
 				71AB15A621B845338CFA79C2 /* RCTBluetoothSerial.xcodeproj */,
+				0A520D38090E4D20B8AD60EF /* RNBLE.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -844,6 +849,7 @@
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 			};
 			name = Debug;
@@ -860,6 +866,7 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RopeZ.app/RopeZ";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
