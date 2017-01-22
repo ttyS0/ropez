@@ -42,14 +42,6 @@ class RopeZ extends Component {
   componentDidMount() {
     this.disconnect();
   }
-  sendMessage(msg) {
-    if(!this.state.connected) {
-      ToastAndroid.show('您还没有连接到 RopeZ 设备。', ToastAndroid.LONG);
-    } else {
-      BluetoothSerial.write(msg)
-      .catch((err) => ToastAndroid.show(err, ToastAndroid.LONG))
-    }
-  }
   apply() {
     this.sendMessage('@SET TEXT ' + this.state.text + '\r\n');
     this.sendMessage('@SET MUSIC ' + this.state.music + '\r\n');
@@ -64,6 +56,14 @@ class RopeZ extends Component {
       packet.fill(' ');
       toWrite.copy(packet, 0, i * packetSize, (i + 1) * packetSize);
       writePromises.push(BluetoothSerial.write(packet));
+    }
+  }
+  sendMessage(msg) {
+    if(!this.state.connected) {
+      ToastAndroid.show('您还没有连接到 RopeZ 设备。', ToastAndroid.LONG);
+    } else {
+      BluetoothSerial.write(msg)
+      .catch((err) => ToastAndroid.show(err, ToastAndroid.LONG))
     }
   }
   /*
@@ -173,12 +173,15 @@ class RopeZ extends Component {
           <Text style={{flex: 7, fontWeight: 'bold', textAlign: 'center'}}>今天你跳了<Text style={{color: '#F00'}}>30</Text>下</Text>
         </View>
         <View style={{flex: 1, padding: 15}}>
-          <Text style={{color: 'white'}}>React Native Color Picker - Controlled</Text>
           <TriangleColorPicker
             oldColor='purple'
             color={this.state.color}
             onColorSelected={color => alert(`Color selected: ${color}`)}
-            onOldColorSelected={color => alert(`Old color selected: ${color}`)}
+            onOldColorSelected={color => {
+              this.setState({
+                    
+              });
+            })}
             style={{flex: 1}}
           />
         </View>
