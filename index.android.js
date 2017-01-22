@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 
 
-import BluetoothSerial from 'react-native-bluetooth-serial';
 import { TriangleColorPicker, toHsv, fromHsv } from 'react-native-color-picker'
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
@@ -43,8 +42,6 @@ class RopeZ extends Component {
     this.disconnect();
   }
   apply() {
-    this.sendMessage('@SET TEXT ' + this.state.text + '\r\n');
-    this.sendMessage('@SET MUSIC ' + this.state.music + '\r\n');
   }
   writePackets(message, packetSize = 64) {
     const toWrite = iconv.encode(message, 'cp852');
