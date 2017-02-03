@@ -13,6 +13,7 @@ import {
   Switch
 } from 'react-native';
 
+import BluetoothSerial from 'react-native-bluetooth-serial';
 
 import { TriangleColorPicker, toHsv, fromHsv } from 'react-native-color-picker'
 import { Buffer } from 'buffer';
@@ -171,14 +172,10 @@ class RopeZ extends Component {
         </View>
         <View style={{flex: 1, padding: 15}}>
           <TriangleColorPicker
-            oldColor='purple'
+            oldColor='white'
             color={this.state.color}
             onColorSelected={color => alert(`Color selected: ${color}`)}
-            onOldColorSelected={color => {
-              this.setState({
-                    
-              });
-            })}
+            onOldColorSelected={color => {}}
             style={{flex: 1}}
           />
         </View>
