@@ -1,17 +1,8 @@
 package com.ropez;
 
 import com.facebook.react.ReactActivity;
-import com.sensormanager.SensorManagerPackage;
-import com.sensormanager.SensorManagerPackage;
 import com.rusel.RCTBluetoothSerial.RCTBluetoothSerialPackage;
-import com.geniem.rnble.RNBLEPackage;
 import com.sensormanager.SensorManagerPackage;
-import com.rusel.RCTBluetoothSerial.RCTBluetoothSerialPackage;
-import com.polidea.reactnativeble.BlePackage;
-import it.innove.BleManagerPackage;
-import com.geniem.rnble.RNBLEPackage;
-import com.polidea.reactnativeble.BlePackage;
-import it.innove.BleManagerPackage;
 
 public class MainActivity extends ReactActivity {
 

@@ -13,8 +13,6 @@ import com.facebook.soloader.SoLoader;
 import java.util.Arrays;
 import java.util.List;
 
-import it.innove.BleManagerPackage;
-import com.polidea.reactnativeble.BlePackage;
 import com.rusel.RCTBluetoothSerial.*;
 
 public class MainApplication extends Application implements ReactApplication {
@@ -29,10 +27,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-          new RCTBluetoothSerialPackage(),
-          new BleManagerPackage(),
-          new BlePackage()
-
+          new RCTBluetoothSerialPackage()
       );
     }
   };

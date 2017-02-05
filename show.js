@@ -7,14 +7,12 @@ import {
   ToastAndroid,
   ToolbarAndroid,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
   Platform,
   Picker,
   Switch
 } from 'react-native';
 
-import Modal from 'react-native-modalbox';
 import BluetoothSerial from 'react-native-bluetooth-serial';
 
 import { TriangleColorPicker, toHsv, fromHsv } from 'react-native-color-picker'
@@ -35,11 +33,9 @@ class RopeZ extends Component {
       available: true,
       devices: [],
       device: null,
-      mode: true,
       text: '',
       music: '',
       connected: false,
-      custom: [[1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
     };
   }
 
@@ -47,13 +43,6 @@ class RopeZ extends Component {
     this.disconnect();
   }
   apply() {
-    ToastAndroid.show('Success!', ToastAndroid.SHORT)
-  }
-  openText() {
-    this.textModal.open();
-  }
-  openColor() {
-    this.colorModal.open();
   }
   writePackets(message, packetSize = 64) {
     const toWrite = iconv.encode(message, 'cp852');
@@ -131,32 +120,11 @@ class RopeZ extends Component {
     });
   }
 
-  toggle(column, row, value) {
-    let arr = [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]];
-    let i = 0, j = 0;
-    for(i = 0; i < 8; i++)
-      for(j = 0; j < 8; j++)
-        arr[j][i] = this.state.custom[j][i];
-    arr[row][column] = value * 1;
-    this.setState({
-      custom: arr,
-    });
-    console.log(arr);
-  }
-
   disconnect() {
     BluetoothSerial.disconnect()
     .then(() => this.setState({ connected: false }))
     .then(() => BluetoothSerial.disable())
     .catch((err) =>console.log(err));
-  }
-
-  calcSum(arr) {
-    let i = 0, result = 0;
-    for(i = 0; i < 8; i++) {
-      result += arr[i] * Math.pow(2, 8 - 1 - i);
-    }
-    return result;
   }
 
   render() {
@@ -181,23 +149,25 @@ class RopeZ extends Component {
           </TouchableOpacity>
         </View>
         <View style={styles.showString}>
-          <Text style={{flex: 3, textAlign: 'center'}}>显示</Text>
-          <Text style={{flex: 4, fontWeight: 'bold', textAlign: 'center'}}>
-          {
-            this.state.mode ? "用户自定义" : this.state.text
-          }
-          </Text>
-          <TouchableOpacity style={{flex: 3}} onPress={this.openText.bind(this)}>
-            <View><Text>修改</Text></View>
-          </TouchableOpacity>
+          <Text style={{flex: 3, textAlign: 'center'}}>显示字符串</Text>
+          <TextInput
+            style={{flex:7, height: 40, borderColor: 'gray', borderWidth: 1}}
+            onChangeText={(text) => this.setState({text})}
+            value={this.state.text}
+          />
         </View>
         <View style={styles.showString}>
-          <Text style={{flex: 3, textAlign: 'center'}}>颜色</Text>
-          <View style={{flex: 4, height: 20, backgroundColor: this.state.color}}>
-          </View>
-          <TouchableOpacity style={{flex: 3}} onPress={this.openColor.bind(this)}>
-            <View><Text>修改</Text></View>
-          </TouchableOpacity>
+          <Text style={{flex: 3, textAlign: 'center'}}>统计</Text>
+          <Text style={{flex: 7, fontWeight: 'bold', textAlign: 'center'}}>今天你跳了<Text style={{color: '#F00'}}>{this.state.counter}</Text>下</Text>
+        </View>
+        <View style={{flex: 1, padding: 15}}>
+          <TriangleColorPicker
+            oldColor='white'
+            color={this.state.color}
+            onColorSelected={color => alert(`Color selected: ${color}`)}
+            onOldColorSelected={color => {}}
+            style={{flex: 1}}
+          />
         </View>
         <View>
           <TouchableOpacity
@@ -208,89 +178,6 @@ class RopeZ extends Component {
             <Text style={{ color: '#fff', textAlign: 'center'}}>应用</Text>
           </TouchableOpacity>
         </View>
-        <Modal ref={(ref) => {this.colorModal = ref;}}>
-          <View style={{flex: 1, padding: 15}}>
-            <TriangleColorPicker
-              oldColor='white'
-              color={this.state.color}
-              onColorSelected={color => {this.setState({color});}}
-              onOldColorSelected={color => {this.setState({color});}}
-              style={{flex: 1}}
-            />
-          </View>
-        </Modal>
-        <Modal ref={(ref) => {this.textModal = ref;}}>
-          <View style={styles.textContainer}>
-            <View style={styles.rowItem}>
-              <View style={styles.rowField}>
-                <Text style={styles.fieldText}>显示类型</Text>
-              </View>
-              <View style={styles.rowValue}>
-                <Text>文字</Text>
-                <Switch value={this.state.mode} />
-                <Text>自定义字模</Text>
-              </View>
-            </View>
-            <View style={styles.rowItem}>
-              <View style={styles.rowField}>
-                <Text style={styles.fieldText}>文字设置</Text>
-              </View>
-              <View style={styles.rowValue}>
-                <TextInput
-                  style={{flex:7, height: 40, borderColor: 'gray', borderWidth: 1}}
-                  onChangeText={(text) => this.setState({text})}
-                  value={this.state.text}
-                />
-              </View>
-            </View>
-            <View style={styles.rowItem}>
-              <View style={styles.rowField}>
-                <Text style={styles.fieldText}>自定义</Text>
-              </View>
-              <View style={styles.rowValue}>
-              </View>
-            </View>
-            <View style={styles.customContainer}>
-              <View style={styles.customBox}>
-              {
-                this.state.custom.map((v, i) => {
-                  return(
-                    <View key={i} style={styles.customRow}>
-                    {
-                      v.map((w, j) => {
-                        let val = (w == 1);
-                        let bg = (val ? '#000' : '#FFF');
-                        return(
-                          <TouchableWithoutFeedback
-                              key={j}
-                              style={styles.customItem}
-                              onPress={this.toggle.bind(this, j, i , !val)}>
-                            <View style={{width: 40, height: 40, backgroundColor: bg, borderColor: '#CCC', borderWidth: 1,}}>
-                            </View>
-                          </TouchableWithoutFeedback>
-                        );
-                      })
-                    }
-                    </View>
-                  );
-                })
-              }
-              </View>
-              <View>
-              {
-                this.state.custom.map((v, i) => {
-                  let sum = this.calcSum(v);
-                  return(
-                    <Text key={i} style={styles.customRow}>
-                      {sum}
-                    </Text>
-                  );
-                })
-              }
-              </View>
-            </View>
-          </View>
-        </Modal>
       </View>
     );
   }
@@ -354,47 +241,6 @@ const styles = StyleSheet.create({
   button: {
     margin: 5,
     padding: 25,
-  },
-  textContainer: {
-    flex: 1,
-    padding: 15,
-    flexDirection: 'column',
-  },
-  rowItem: {
-    //flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 40,
-    margin: 0,
-  },
-  rowField: {
-    flex: 3,
-  },
-  rowValue: {
-    flex: 7,
-    flexDirection: 'row',
-  },
-  fieldText: {
-    textAlign: 'center',
-  },
-  customContainer: {
-    //flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  customBox: {
-    //flex: 1,
-    flexDirection: 'column',
-  },
-  customRow: {
-    //flex: 1,
-    flexDirection: 'row',
-  },
-  customItem: {
-    margin: 2,
-    height: 40,
-    width: 40,
   }
 })
 
