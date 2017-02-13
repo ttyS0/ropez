@@ -16,7 +16,9 @@ import {
 
 import Modal from 'react-native-modalbox';
 import BluetoothSerial from 'react-native-bluetooth-serial';
-
+import CustomBox8 from './components/CustomBox8.js';
+import CustomBox16 from './components/CustomBox16.js';
+import Characters from './characters.js';
 import { TriangleColorPicker, toHsv, fromHsv } from 'react-native-color-picker'
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
@@ -26,7 +28,7 @@ const Button = ({ label, onPress }) =>
   <TouchableOpacity style={styles.button} onPress={onPress}>
     <Text style={{ color: '#fff' }}>{label}</Text>
   </TouchableOpacity>;
-
+let custom =  [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]];
 class RopeZ extends Component {
   constructor (props) {
     super(props);
@@ -35,25 +37,73 @@ class RopeZ extends Component {
       available: true,
       devices: [],
       device: null,
-      mode: true,
-      text: '',
+      //color1: '#FFFFFF',
+      //color: '#FFFFFF',
+      mode1: true,
+      mode2: true,
+      text1: '',
+      custom1: [0, 0, 0, 0, 0, 0, 0, 0],
+      text2: '',
+      custom2: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       music: '',
+      color1: '#FFFFFF',
+      color2: '#FFFFFF',
       connected: false,
-      custom: [[1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
     };
   }
-
   componentDidMount() {
     this.disconnect();
   }
   apply() {
-    ToastAndroid.show('Success!', ToastAndroid.SHORT)
+    let result = '';
+    if(this.state.mode1) {
+      //alert('SET BUFFER1='+this.state.custom.join(' ') + '\n');
+      result += ('SET BUFFER1='+this.state.custom1.join(' ') + ' /\n');
+    } else {
+      //alert('SET BUFFER2=' + this.getBuffer(this.state.text) + '\n');
+      result += ('SET BUFFER1=' + this.getBuffer(this.state.text1) + '\n')
+    }
+    if(this.state.mode2) {
+      //alert('SET BUFFER1='+this.state.custom.join(' ') + '\n');
+      result += ('SET BUFFER2='+this.state.custom2.join(' ') + ' /\n');
+    } else {
+      //alert('SET BUFFER2=' + this.getBuffer(this.state.text) + '\n');
+      result += ('SET BUFFER2=' + this.getBuffer(this.state.text2) + '\n')
+    }
+    result += ('SET COLOR1=' + this.state.color1.slice(1) + '\n');
+    result += ('SET COLOR2=' + this.state.color2.slice(1) + '\n');
+    this.sendMessage(result);
   }
-  openText() {
-    this.textModal.open();
+  getBuffer(str) {
+    let result = '';
+    let i = 0;
+    for(i = 0; i < str.length; i++) {
+      let t = Characters[str.charAt(i)];
+      result = result + t.join(' ') + ' /';
+    }
+    return result;
   }
-  openColor() {
-    this.colorModal.open();
+  openText(id) {
+    switch(id)
+    {
+      case 1:
+        this.textModal1.open();
+        break;
+      case 2:
+        this.textModal2.open();
+        break;
+    }
+  }
+  openColor(id) {
+    switch(id)
+    {
+      case 1:
+        this.colorModal1.open();
+        break;
+      case 2:
+        this.colorModal2.open();
+        break;
+    }
   }
   writePackets(message, packetSize = 64) {
     const toWrite = iconv.encode(message, 'cp852');
@@ -83,6 +133,7 @@ class RopeZ extends Component {
   }
   */
   connect() {
+    let counter = 0;
     this.setState({
       available: false
     }, () => {
@@ -90,16 +141,36 @@ class RopeZ extends Component {
       .then((v) => v ? v : BluetoothSerial.enable())
       .then(() => {
         return new Promise((resolve, reject) => {
-		      setInterval((res) => {
-              BluetoothSerial.isEnabled()
-              .then((v) => {
-                return v ? resolve(clearInterval()) : null;
+		      let timer = setInterval((res) => {
+            if(counter >= 8000)
+            {
+              ToastAndroid.show("连接失败", ToastAndroid.SHORT);
+              this.setState({
+                available: true,
               })
+              reject(clearInterval(timer));
+            }
+            else
+              counter += 100;
+            BluetoothSerial.isEnabled()
+            .then((v) => {
+              return v ? resolve(clearInterval(timer)) : null;
+            })
 		      }, 100);
 	      });
       })
       .then(() => BluetoothSerial.list())
       .then((devices) => {
+        devices.map((device) => {
+          if(device.name == 'RopeZ') {
+            this.setState({
+              device: device,
+            });
+            return BluetoothSerial.connect(device.id);
+          }
+        })
+        return 0;
+        /*
         return Promise.all(devices.map((device) => {
           if(device.name == 'RopeZ') {
             this.setState({
@@ -112,38 +183,44 @@ class RopeZ extends Component {
             return 0;
           }
         }));
+        */
       })
-      .then((device) => {
-        if(device != 0)
-        {
-          return this.setState({
-            connected: true,
-            available: true,
-          });
-        }
-        else
-        {
-          return false;
-        }
+      .catch(() => {
+        ToastAndroid.show("连接失败", ToastAndroid.SHORT);
+        this.setState({
+          available: true,
+        })
+        reject();
       })
-      .then()
+      .then(() => {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve()
+          }, 3000);
+	      });
+      })
+      .then(() => BluetoothSerial.isConnected())
+      .then((v) => {
+        return new Promise((resolve, reject) => {
+          if(v == false) {
+            ToastAndroid.show("连接失败", ToastAndroid.SHORT);
+            this.setState({
+              available: true,
+            })
+            reject();
+          } else {
+            this.setState({
+              connected: true,
+              available: true,
+            })
+            resolve();
+          }
+	      });
+      })
       .catch((err) => console.log(err));
     });
   }
-
-  toggle(column, row, value) {
-    let arr = [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]];
-    let i = 0, j = 0;
-    for(i = 0; i < 8; i++)
-      for(j = 0; j < 8; j++)
-        arr[j][i] = this.state.custom[j][i];
-    arr[row][column] = value * 1;
-    this.setState({
-      custom: arr,
-    });
-    console.log(arr);
-  }
-
+  
   disconnect() {
     BluetoothSerial.disconnect()
     .then(() => this.setState({ connected: false }))
@@ -181,22 +258,29 @@ class RopeZ extends Component {
           </TouchableOpacity>
         </View>
         <View style={styles.showString}>
-          <Text style={{flex: 3, textAlign: 'center'}}>显示</Text>
-          <Text style={{flex: 4, fontWeight: 'bold', textAlign: 'center'}}>
-          {
-            this.state.mode ? "用户自定义" : this.state.text
-          }
-          </Text>
-          <TouchableOpacity style={{flex: 3}} onPress={this.openText.bind(this)}>
-            <View><Text>修改</Text></View>
+          <Text style={{flex: 3, textAlign: 'center'}}>显示(8*8)</Text>
+          <TouchableOpacity style={{flex: 3}} onPress={this.openText.bind(this, 1)}>
+            <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
+            {
+              this.state.mode1 ? "用户自定义" : this.state.text1
+            }
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{flex: 3}} onPress={this.openColor.bind(this, 1)}>
+            <View style={{height: 20, backgroundColor: this.state.color1}} />
           </TouchableOpacity>
         </View>
         <View style={styles.showString}>
-          <Text style={{flex: 3, textAlign: 'center'}}>颜色</Text>
-          <View style={{flex: 4, height: 20, backgroundColor: this.state.color}}>
-          </View>
-          <TouchableOpacity style={{flex: 3}} onPress={this.openColor.bind(this)}>
-            <View><Text>修改</Text></View>
+          <Text style={{flex: 3, textAlign: 'center'}}>显示(16*16)</Text>
+          <TouchableOpacity style={{flex: 3}} onPress={this.openText.bind(this, 2)}>
+            <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
+            {
+              this.state.mode2 ? "用户自定义" : this.state.text2
+            }
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{flex: 3}} onPress={this.openColor.bind(this, 2)}>
+            <View style={{height: 20, backgroundColor: this.state.color2}} />
           </TouchableOpacity>
         </View>
         <View>
@@ -208,18 +292,55 @@ class RopeZ extends Component {
             <Text style={{ color: '#fff', textAlign: 'center'}}>应用</Text>
           </TouchableOpacity>
         </View>
-        <Modal ref={(ref) => {this.colorModal = ref;}}>
+        <Text>
+        {
+          (() => {
+            let result = '';
+            if(this.state.mode1) {
+              //alert('SET BUFFER1='+this.state.custom.join(' ') + '\n');
+              result += ('SET BUFFER1='+this.state.custom1.join(' ') + ' /\n');
+            } else {
+              //alert('SET BUFFER2=' + this.getBuffer(this.state.text) + '\n');
+              result += ('SET BUFFER1=' + this.getBuffer(this.state.text1) + '\n')
+            }
+            if(this.state.mode2) {
+              //alert('SET BUFFER1='+this.state.custom.join(' ') + '\n');
+              result += ('SET BUFFER2='+this.state.custom2.join(' ') + ' /\n');
+            } else {
+              //alert('SET BUFFER2=' + this.getBuffer(this.state.text) + '\n');
+              result += ('SET BUFFER2=' + this.getBuffer(this.state.text2) + '\n')
+            }
+            result += ('SET COLOR1=' + this.state.color1.slice(1) + '\n');
+            result += ('SET COLOR2=' + this.state.color2.slice(1) + '\n');
+            return result;
+          })()
+        }
+        </Text>
+        <Modal ref={(ref) => {this.colorModal1 = ref;}}>
           <View style={{flex: 1, padding: 15}}>
             <TriangleColorPicker
-              oldColor='white'
-              color={this.state.color}
-              onColorSelected={color => {this.setState({color});}}
-              onOldColorSelected={color => {this.setState({color});}}
+              defaultColor={'#FFFFFF'}
+              color={this.state.color1}
+              onColorSelected={color => {this.setState({color1: fromHsv(color)});}}
+              onOldColorSelected={color => {this.setState({color1: fromHsv(color)});}}
+              onColorChange={color => {this.setState({color1: fromHsv(color)});}}
               style={{flex: 1}}
             />
           </View>
         </Modal>
-        <Modal ref={(ref) => {this.textModal = ref;}}>
+        <Modal ref={(ref) => {this.colorModal2 = ref;}}>
+          <View style={{flex: 1, padding: 15}}>
+            <TriangleColorPicker
+              defaultColor={'#FFFFFF'}
+              color={this.state.color2}
+              onColorSelected={color => {this.setState({color2: fromHsv(color)});}}
+              onOldColorSelected={color => {this.setState({color2: fromHsv(color)});}}
+              onColorChange={color => {this.setState({color2: fromHsv(color)});}}
+              style={{flex: 1}}
+            />
+          </View>
+        </Modal>
+        <Modal ref={(ref) => {this.textModal1 = ref;}}>
           <View style={styles.textContainer}>
             <View style={styles.rowItem}>
               <View style={styles.rowField}>
@@ -227,7 +348,12 @@ class RopeZ extends Component {
               </View>
               <View style={styles.rowValue}>
                 <Text>文字</Text>
-                <Switch value={this.state.mode} />
+                <Switch onValueChange={(value) => {
+                  this.setState({
+                    mode1: value,
+                  })
+                }}
+                value={this.state.mode1} />
                 <Text>自定义字模</Text>
               </View>
             </View>
@@ -238,8 +364,8 @@ class RopeZ extends Component {
               <View style={styles.rowValue}>
                 <TextInput
                   style={{flex:7, height: 40, borderColor: 'gray', borderWidth: 1}}
-                  onChangeText={(text) => this.setState({text})}
-                  value={this.state.text}
+                  onChangeText={(text1) => this.setState({text1})}
+                  value={this.state.text1}
                 />
               </View>
             </View>
@@ -251,59 +377,78 @@ class RopeZ extends Component {
               </View>
             </View>
             <View style={styles.customContainer}>
-              <View style={styles.customBox}>
-              {
-                this.state.custom.map((v, i) => {
-                  return(
-                    <View key={i} style={styles.customRow}>
-                    {
-                      v.map((w, j) => {
-                        let val = (w == 1);
-                        let bg = (val ? '#000' : '#FFF');
-                        return(
-                          <TouchableWithoutFeedback
-                              key={j}
-                              style={styles.customItem}
-                              onPress={this.toggle.bind(this, j, i , !val)}>
-                            <View style={{width: 40, height: 40, backgroundColor: bg, borderColor: '#CCC', borderWidth: 1,}}>
-                            </View>
-                          </TouchableWithoutFeedback>
-                        );
-                      })
-                    }
-                    </View>
-                  );
-                })
-              }
+              <CustomBox8 callback={(val) => this.setState({custom1: val})} />
+              <Text>{this.state.custom1.join(',')}</Text>
+            </View>
+          </View>
+        </Modal>
+        <Modal ref={(ref) => {this.textModal2 = ref;}}>
+          <View style={styles.textContainer}>
+            <View style={styles.rowItem}>
+              <View style={styles.rowField}>
+                <Text style={styles.fieldText}>显示类型</Text>
               </View>
-              <View>
-              {
-                this.state.custom.map((v, i) => {
-                  let sum = this.calcSum(v);
-                  return(
-                    <Text key={i} style={styles.customRow}>
-                      {sum}
-                    </Text>
-                  );
-                })
-              }
+              <View style={styles.rowValue}>
+                <Text>文字</Text>
+                <Switch onValueChange={(value) => {
+                  this.setState({
+                    mode2: value,
+                  })
+                }}
+                value={this.state.mode2} />
+                <Text>自定义字模</Text>
               </View>
+            </View>
+            <View style={styles.rowItem}>
+              <View style={styles.rowField}>
+                <Text style={styles.fieldText}>文字设置</Text>
+              </View>
+              <View style={styles.rowValue}>
+                <TextInput
+                  style={{flex:7, height: 40, borderColor: 'gray', borderWidth: 1}}
+                  onChangeText={(text2) => this.setState({text2})}
+                  value={this.state.text2}
+                />
+              </View>
+            </View>
+            <View style={styles.rowItem}>
+              <View style={styles.rowField}>
+                <Text style={styles.fieldText}>自定义</Text>
+              </View>
+              <View style={styles.rowValue}>
+              </View>
+            </View>
+            <View style={styles.customContainer}>
+              <CustomBox16 callback={(val) => this.setState({custom2: val})} />
+              <Text>{this.state.custom2.join(',')}</Text>
             </View>
           </View>
         </Modal>
       </View>
+      
     );
+    /*
+    return (
+      <View style={styles.container}>
+        <CustomRow callback={(val) => {this.setState({val})}}></CustomRow>
+        <Text>{this.state.val && this.state.val}</Text>
+
+        <CustomBox callback={(val) => console.log(val)} />
+      </View>
+    );
+    */
   }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#EEE',
   },
   showString: {
     alignItems: 'center',
     flexDirection: 'row',
+    marginVertical: 10,
   },
   heading: {
     fontWeight: 'bold',
